@@ -5,7 +5,7 @@ from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, CallbackQueryHandler, ContextTypes
 
 # ==================== KONFIGURATSIYA ====================
-TOKEN = "8645720663:AAHcb_LMgKP7qTr87fT7BmkCWqqYmF9-14o"
+TOKEN = "88645720663:AAHcb_LMgKP7qTr87fT7BmkCWqqYmF9-14o"
 
 # ASOSCHI NIKI
 CREATOR = "@husanov_15"
@@ -170,53 +170,51 @@ async def make_pdf(query, context, user_id):
             f"Hech qanday rasm topilmadi!\n\nAvval menga rasm yuboring.\n\n{CREATOR}",
             reply_markup=get_main_keyboard()
         )
+        context.user_data['last_message_id'] = None
         return
-
+    
     quality_level = user_settings[user_id]['quality']
     quality_name = QUALITY_SETTINGS[quality_level]['name']
-    pdf_name = user_pdf_names.get(user_id, "rasmlar")
     pdf_path = f"output_{user_id}.pdf"
-
+    
     try:
-        # TAKRORLANAYOTGAN RASMLARNI OLIB TASHLASH
-        unique_images = []
-        for img in user_images[user_id]:
-            if img not in unique_images:
-                unique_images.append(img)
-        
-        print(f"Jami rasm: {len(user_images[user_id])}, Unikal rasm: {len(unique_images)}")
-        
         with open(pdf_path, "wb") as f:
-            f.write(img2pdf.convert(unique_images))
-
+            f.write(img2pdf.convert(user_images[user_id]))
+        
         file_size = os.path.getsize(pdf_path) / (1024 * 1024)
-        photo_count = len(unique_images)
-
-        if user_id in user_stats:
-            user_stats[user_id]['pdf_count'] += 1
-            user_stats[user_id]['total_photos'] += photo_count
-
+        photo_count = len(user_images[user_id])
+        
         caption = f"Tayyor!\n\n{photo_count} ta rasm\nSifat: {quality_name}\nHajm: {file_size:.2f} MB\n\n{CREATOR}"
         
         with open(pdf_path, "rb") as pdf_file:
-            await query.message.reply_document(pdf_file, filename=f"{pdf_name}.pdf", caption=caption)
-
-        # Tozalash
+            await query.message.reply_document(
+                pdf_file,
+                filename="rasmlar.pdf",
+                caption=caption
+            )
+        
+        # RASMLARNI TOZALASH
         for img in user_images[user_id]:
             if os.path.exists(img):
                 os.remove(img)
         if os.path.exists(pdf_path):
             os.remove(pdf_path)
         user_images[user_id] = []
+        
+        # XABAR ID SINI TOZALASH (YANGI PDF UCHUN)
         context.user_data['last_message_id'] = None
-
+        
         await query.edit_message_text(
-            f"{photo_count} ta rasm PDF ga o'girildi!\n\nYangi rasmlar yuborishingiz mumkin!\n\n{CREATOR}",
+            f"{photo_count} ta rasm PDF ga ogirildi va tozalandi!\n\n"
+            f"Endi YANGI rasmlar yuborib, YANA PDF yaratishingiz mumkin!\n\n"
+            f"Cheksiz PDF yaratish imkoniyati!\n\n"
+            f"{CREATOR}",
             reply_markup=get_main_keyboard()
         )
+        
     except Exception as e:
         await query.edit_message_text(
-            f"Xatolik: {str(e)}\n\n{CREATOR}",
+            f"Xatolik: {str(e)}\n\nQaytadan urinib ko'ring.\n\n{CREATOR}",
             reply_markup=get_main_keyboard()
         )
 
