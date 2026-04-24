@@ -108,6 +108,12 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         reply_markup=get_main_keyboard()
     )
 
+# ==================== HEALTH CHECK (UPTIMEROBOT UCHUN) ====================
+# 🆕 YANGI QO'SHILDI - Bot uxlab qolmasligi uchun
+async def health(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """UptimeRobot botni tekshirishi uchun - bot uxlab qolmasligi kerak"""
+    await update.message.reply_text("✅ Bot ishlayapti va sog'lom!")
+
 # ==================== RASM QABUL QILISH ====================
 async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
@@ -284,7 +290,9 @@ def main():
     
     app = Application.builder().token(TOKEN).build()
     
+    # 🆕 YANGI QO'SHILDI - health handler
     app.add_handler(CommandHandler("start", start))
+    app.add_handler(CommandHandler("health", health))  # <--- YANGI
     app.add_handler(MessageHandler(filters.PHOTO, handle_photo))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_text))
     app.add_handler(CallbackQueryHandler(button_callback))
@@ -294,7 +302,24 @@ def main():
     print("Cheksiz marta PDF yaratish mumkin!")
     print("")
     print("Botni sinab ko'ring: @Pdf_uzbbot")
-    app.run_polling()
+    
+    # 🆕 O'ZGARTIRILGAN QISM - Render'da webhook, kompyuterda polling
+    port = int(os.environ.get("PORT", 8080))
+    render_url = os.environ.get("RENDER_EXTERNAL_URL")
+    
+    if render_url:
+        # Render cloud da ishlayapti - webhook (uxlamasligi uchun)
+        print(f"Render cloud: Webhook rejimida ishga tushmoqda")
+        app.run_webhook(
+            listen="0.0.0.0",
+            port=port,
+            url_path=TOKEN,
+            webhook_url=f"{render_url}/{TOKEN}"
+        )
+    else:
+        # Kompyuterda yoki lokal serverda - polling (o'zgarmagan)
+        print("Lokal: Polling rejimida ishga tushmoqda")
+        app.run_polling()
 
 if __name__ == "__main__":
     main()
