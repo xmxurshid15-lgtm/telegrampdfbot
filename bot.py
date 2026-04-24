@@ -5,7 +5,7 @@ from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, CallbackQueryHandler, ContextTypes
 
 # ==================== KONFIGURATSIYA ====================
-TOKEN = "8645720663:AAEz5BTaAvxsRt8ETyZz3ZD2FgQjTLfO0VE"
+TOKEN = "8645720663:AAGHmGUcNvWuBm9621CSxRXqhbpeR415DX8"
 
 # ASOSCHI NIKI
 CREATOR = "@husanov_15"
